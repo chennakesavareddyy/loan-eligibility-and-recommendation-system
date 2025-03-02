@@ -1,18 +1,22 @@
 import streamlit as st
 import pandas as pd
 import pickle
-from transformers import pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-# Load trained model
+# Load trained ML model (Random Forest for loan eligibility)
 with open("RF_model.pkl", "rb") as file:
-    model = pickle.load(file)
+    loan_model = pickle.load(file)  
 
 # Load column names used during training
 with open("columns.pkl", "rb") as file:
     training_columns = pickle.load(file)
 
-# Load Hugging Face model
-generator = pipeline('text2text-generation', model='google/flan-t5-large')
+# Specify the model name
+model_name = "yuva2110/vanilla-charbot"
+
+# Load the tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+vanilla_charbot_model = AutoModelForCausalLM.from_pretrained(model_name)
 
 # Streamlit UI
 st.title("Welcome to Loan Eligibility")
@@ -51,11 +55,11 @@ loan_dummies = loan_dummies[training_columns]
 
 # Prediction
 if st.button("Predict Eligibility"):
-    prediction = model.predict(loan_dummies)
+    prediction = loan_model.predict(loan_dummies)
     result = "Approved" if prediction[0] == 1 else "Rejected"
     st.write(f"Loan Eligibility Prediction: **{result}**")
-    
-    # Hugging Face model to generate a response
+
+    # Generate response using the vanilla-charbot model
     prompt = f"""
     A person with the following details applied for a loan:
     - Number of Dependents: {no_of_dependents}
@@ -69,16 +73,19 @@ if st.button("Predict Eligibility"):
     - Commercial Assets Value: {commercial_assets_value}
     - Luxury Assets Value: {luxury_assets_value}
     - Bank Asset Value: {bank_asset_value}
-    
-    The loan application was **{'approved' if prediction[0] == 1 else 'rejected'}. 
 
-    Please explain step by step why the loan was {'approved' if prediction[0] == 1 else 'rejected'}:
+    The loan application was **{'approved' if prediction[0] == 1 else 'rejected'}**. 
 
-    If rejected: Provide 3 practical steps the applicant can take to improve their chances for approval next time.
+    Please explain step by step why the loan was {'approved' if prediction[0] == 1 else 'rejected'}.
+
+    If rejected: Provide practical steps the applicant can take to improve their chances for approval next time.
     """
-    generated_text = generator(prompt, max_new_tokens=400, num_return_sequences=1, temperature=0.7, top_p=0.9)
 
-    # Extract only the generated text after the prompt
-    explanation = generated_text[0]['generated_text'].replace(prompt, "").strip()
-    st.write("wanna know why ?? Here you go:")
-    st.write(explanation)
+    def generate_vanilla_charbot_response(prompt):
+        inputs = tokenizer(prompt, return_tensors="pt")
+        output = vanilla_charbot_model.generate(**inputs, max_length=400, temperature=0.7, top_p=0.9)
+        response = tokenizer.decode(output[0], skip_special_tokens=True)
+        return response
+
+    explanation = generate_vanilla_charbot_response(prompt)
+    st.write(f"Model Explanation:\n{explanation}")
