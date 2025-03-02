@@ -1,6 +1,5 @@
-pandas
-numpy
-scikit-learn
-pickle-mixin
 streamlit
+pandas
+scikit-learn
 transformers
+huggingface-hub
