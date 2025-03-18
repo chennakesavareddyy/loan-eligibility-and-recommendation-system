@@ -4,10 +4,10 @@ import pickle
 from huggingface_hub import InferenceClient
 
 # Load trained ML model and columns
-with open("RF_model.pkl", "rb") as file:
+with open("code/RF_model.pkl", "rb") as file:
     loan_model = pickle.load(file)
 
-with open("columns.pkl", "rb") as file:
+with open("code/columns.pkl", "rb") as file:
     training_columns = pickle.load(file)
 
 # Streamlit UI Header
