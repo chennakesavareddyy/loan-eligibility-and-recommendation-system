@@ -87,7 +87,7 @@ if st.button("🔎 Check Eligibility"):
 
     client = Client("KingNish/Very-Fast-Chatbot")
     explanation = client.predict(
-    		Query="Hello!!",
+    		Query=prompt,
     		api_name="/predict"
     )
 
