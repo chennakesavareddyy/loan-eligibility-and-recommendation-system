@@ -83,23 +83,18 @@ if st.button("🔎 Check Eligibility"):
 
     # AI Explanation using Hugging Face InferenceClient
     explanation = ""
-    with st.spinner("💬 Analyzing your profile..."):
-        client = InferenceClient(api_key="use_your_token")
+    from gradio_client import Client
 
-        messages = [{"role": "user", "content": prompt}]
-        stream = client.chat.completions.create(
-            model="HuggingFaceH4/zephyr-7b-beta",
-            messages=messages,
-            temperature=0.7,
-            max_tokens=512,
-            top_p=0.7,
-            stream=True
-        )
+    client = Client("KingNish/Very-Fast-Chatbot")
+    explanation = client.predict(
+    		Query="Hello!!",
+    		api_name="/predict"
+    )
 
-        for chunk in stream:
-            explanation += chunk.choices[0].delta.content
+    # for chunk in stream:
+    #         explanation += chunk.choices[0].delta.content
 
-    explanation = explanation.strip().replace("\n", "\n\n")  # Formatting for Streamlit
+    # explanation = explanation.strip().replace("\n", "\n\n")  # Formatting for Streamlit
 
     # Explanation Card
     st.markdown("""
